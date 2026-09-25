@@ -1684,38 +1684,125 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
-
-<script id="with-korean-ui-language-v16">
+<style id="with-selector-selected-v17">
+#withLangGate .langchoice.is-selected,
+#withCountryModal button.is-selected{
+  background:#BDF44A !important;
+  border-color:#171917 !important;
+  color:#171917 !important;
+}
+</style>
+<script id="with-language-state-v17">
 (function(){
- const koBtn=document.querySelector('.langchoice[data-lang="ko"]');
- if(!koBtn)return;
+ const KO={
+  'WELCOME TO KOREA':'한국에 오신 것을 환영합니다',
+  'WELCOME TO JAPAN':'일본에 오신 것을 환영합니다',
+  'Your companion in Korea.':'한국 여행을 함께하는 WITH.',
+  'Your companion in Japan.':'일본 여행을 함께하는 WITH.',
+  'My location':'내 위치',
+  'Current location set successfully.':'현재 위치가 저장되었습니다.',
+  'Save current location':'현재 위치 저장',
+  'Find my way':'길 찾기',
+  'Open a real route to your destination.':'목적지까지 실제 경로를 확인하세요.',
+  'Nearby places':'주변 장소',
+  'Find useful places around your current location.':'현재 위치 주변의 유용한 장소를 찾아보세요.',
+  'Translation & Phrase':'번역 & 상황별 문장',
+  'Type what you want to say and translate it into Korean.':'말하고 싶은 내용을 입력해 한국어로 번역하세요.',
+  'Type what you want to say and translate it into Japanese.':'말하고 싶은 내용을 입력해 일본어로 번역하세요.',
+  'Emergency Help':'긴급 도움',
+  'Police, ambulance and essential help in Korea.':'한국의 경찰, 구급 및 필수 긴급 도움.',
+  'Police, ambulance and essential help in Japan.':'일본의 경찰, 구급 및 필수 긴급 도움.',
+  'Choose your language':'언어 선택',
+  'Useful Korean phrases':'유용한 한국어 문장',
+  'Useful Japanese phrases':'유용한 일본어 문장',
+  'Back':'뒤로'
+ };
 
- async function trKo(s){
-   try{
-     const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q='+encodeURIComponent(s));
-     const j=await r.json();
-     return (j&&j[0]?j[0].map(x=>x&&x[0]||'').join(''):'')||s;
-   }catch(e){return s}
+ function country(){return localStorage.getItem('with_active_country')==='JP'?'JP':'KR'}
+ function lang(){return localStorage.getItem('with_ui_lang')||'en'}
+
+ function selected(){
+   document.querySelectorAll('#withLangGate .langchoice').forEach(b=>{
+     b.classList.toggle('is-selected',b.dataset.lang===lang());
+   });
+   const pref=localStorage.getItem('with_travel_country')||'AUTO';
+   document.querySelectorAll('#withCountryModal [data-country]').forEach(b=>{
+     b.classList.toggle('is-selected',b.dataset.country===pref);
+   });
  }
 
- koBtn.addEventListener('click',async function(e){
-   e.stopImmediatePropagation();
-   const els=[...document.querySelectorAll('[data-i18n]')];
-   await Promise.all(els.map(async el=>{
-     const base=el.dataset.withOriginalText || el.textContent.trim();
-     if(!el.dataset.withOriginalText)el.dataset.withOriginalText=base;
-     if(base)el.textContent=await trKo(base);
-   }));
-   const ph=[...document.querySelectorAll('[data-i18n-placeholder]')];
-   await Promise.all(ph.map(async el=>{
-     const base=el.dataset.withOriginalPlaceholder || el.placeholder;
-     if(!el.dataset.withOriginalPlaceholder)el.dataset.withOriginalPlaceholder=base;
-     if(base)el.placeholder=await trKo(base);
-   }));
+ function fixCountryEnglish(){
+   const jp=country()==='JP';
+   const brand=document.querySelector('.brandcopy small');
+   const sub=document.querySelector('.brandcopy p');
+   if(brand)brand.textContent=jp?'WELCOME TO JAPAN':'WELCOME TO KOREA';
+   if(sub)sub.textContent=jp?'Your companion in Japan.':'Your companion in Korea.';
+   const tb=[...document.querySelectorAll('.banner')].find(x=>/Translation|翻訳|번역|翻译|翻譯/i.test(x.textContent||''));
+   if(tb){
+     const p=tb.querySelector('p');
+     if(p)p.textContent=jp?'Type what you want to say and translate it into Japanese.':'Type what you want to say and translate it into Korean.';
+   }
+   const eb=[...document.querySelectorAll('.banner')].find(x=>/Emergency|緊急|긴급|紧急|緊急/i.test(x.textContent||''));
+   if(eb){
+     const p=eb.querySelector('p');
+     if(p)p.textContent=jp?'Police, ambulance and essential help in Japan.':'Police, ambulance and essential help in Korea.';
+   }
+ }
+
+ function applyKorean(){
+   // First restore the app to its English base so Japanese/Chinese text never leaks into Korean mode.
+   if(window.WITH_applyLanguage) window.WITH_applyLanguage('en');
+   fixCountryEnglish();
+
+   document.querySelectorAll('[data-i18n]').forEach(el=>{
+     const base=(el.dataset.withOriginalText||el.textContent||'').trim();
+     if(KO[base])el.textContent=KO[base];
+   });
+
+   // Cover main home copy even where the old app did not mark data-i18n consistently.
+   document.querySelectorAll('h2,h3,.title,.banner h2,.banner h3,.banner p,.brandcopy small,.brandcopy p').forEach(el=>{
+     const t=(el.textContent||'').trim();
+     if(KO[t])el.textContent=KO[t];
+   });
+
    localStorage.setItem('with_ui_lang','ko');
-   document.getElementById('withLangGate').classList.add('hidden');
-   document.getElementById('withLangChange').style.display='block';
- },true);
+   document.getElementById('withLangGate')?.classList.add('hidden');
+   const lc=document.getElementById('withLangChange'); if(lc)lc.style.display='block';
+   selected();
+ }
+
+ // Korean gets its own deterministic handler.
+ const kb=document.querySelector('#withLangGate .langchoice[data-lang="ko"]');
+ if(kb){
+   kb.addEventListener('click',function(e){
+     e.preventDefault(); e.stopImmediatePropagation(); applyKorean();
+   },true);
+ }
+
+ // Existing EN/JA/ZH handlers remain intact; after they run, refresh selected state.
+ document.querySelectorAll('#withLangGate .langchoice:not([data-lang="ko"])').forEach(b=>{
+   b.addEventListener('click',()=>setTimeout(selected,30));
+ });
+
+ // Nation selection remains intact, but visually marks current manual/auto selection.
+ document.querySelectorAll('#withCountryModal [data-country]').forEach(b=>{
+   b.addEventListener('click',()=>setTimeout(function(){
+     if(lang()==='ko')applyKorean();
+     selected();
+   },120));
+ });
+
+ // Opening either sheet always reflects the saved choice.
+ document.getElementById('withLangChange')?.addEventListener('click',()=>setTimeout(selected,0));
+ document.getElementById('withCountryChange')?.addEventListener('click',()=>setTimeout(selected,0));
+
+ // Repair the mixed-language state shown in the screenshot on startup.
+ function boot(){
+   if(lang()==='ko') applyKorean();
+   else selected();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+ setTimeout(boot,250);
 })();
 </script>
 
