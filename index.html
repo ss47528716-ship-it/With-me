@@ -1396,103 +1396,100 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
 .country-sheet .country-close{text-align:center;border-color:#d7dbd2;font-weight:700}
 </style>
 
-<script id="with-country-phrase-fix-v4">
+<script id="with-country-phrase-fix-v5">
 (function(){
 'use strict';
-const $=s=>document.querySelector(s);
-const jaCache=new Map();
 
-function country(){
-  return localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
+function activeCountry(){
+  return localStorage.getItem('with_active_country')==='JP' ? 'JP' : 'KR';
 }
-function isJP(){return country()==='JP';}
-
-async function ja(text){
-  if(jaCache.has(text)) return jaCache.get(text);
+function speakTarget(text, lang){
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang;
+  u.rate=.9;
+  const voices=speechSynthesis.getVoices();
+  const v=voices.find(x=>(x.lang||'').toLowerCase().startsWith(lang.slice(0,2)));
+  if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+async function translateJA(text){
   try{
     const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ja&dt=t&q='+encodeURIComponent(text));
-    if(!r.ok) throw 0;
-    const d=await r.json(), out=(d[0]||[]).map(x=>x[0]||'').join('')||text;
-    jaCache.set(text,out); return out;
-  }catch(e){return text}
+    const d=await r.json();
+    return (d[0]||[]).map(x=>x[0]||'').join('') || text;
+  }catch(e){ return text; }
 }
-function speak(text,lang){
-  try{
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang=lang;u.rate=.88;u.volume=1;
-    const voices=speechSynthesis.getVoices();
-    const v=voices.find(x=>(x.lang||'').toLowerCase().startsWith(lang.slice(0,2)));
-    if(v)u.voice=v;
-    speechSynthesis.speak(u);
-  }catch(e){}
-}
-function langNow(){try{return typeof withLang==='function'?withLang():'en'}catch(e){return'en'}}
-function categoryLabel(k){
-  const l=langNow();
-  const raw=(window.WITH_CAT_I18N&&WITH_CAT_I18N[k]&&WITH_CAT_I18N[k][l])||k;
-  return String(raw).replace(/^[^\p{L}\p{N}]+/u,'').trim();
-}
-function applyLabels(){
-  const h=$('#home .banner.language h2'); if(h)h.textContent='Translation & Phrase';
-  const useful=$('#usefulPhrases'); if(useful)useful.style.display='block';
-  const title=$('#usefulPhrases .useful-title'), sub=$('#usefulPhrases .useful-sub');
-  if(isJP()){
-    if(title)title.textContent='Useful Japanese phrases';
-    if(sub)sub.textContent='Choose a situation. Tap 🔊 to play the Japanese phrase.';
-  }
-}
-window.openPhraseCategory=async function(k){
-  if(!window.WITH_PHRASES || !WITH_PHRASES[k])return;
-  const page=$('#phraseDetailPage'), title=$('#phraseDetailTitle'), list=$('#phraseDetailList');
-  if(!page||!title||!list)return;
-  title.textContent=categoryLabel(k); list.innerHTML='';
-  page.classList.add('show');page.setAttribute('aria-hidden','false');
-  document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
 
-  const jp=isJP();
+window.openPhraseCategory=async function(k){
+  if(typeof WITH_PHRASES==='undefined' || !WITH_PHRASES[k]) return;
+
+  const page=document.getElementById('phraseDetailPage');
+  const title=document.getElementById('phraseDetailTitle');
+  const list=document.getElementById('phraseDetailList');
+  if(!page||!title||!list) return;
+
+  title.textContent=(typeof WITH_CAT_I18N!=='undefined' && WITH_CAT_I18N[k] && WITH_CAT_I18N[k][typeof withLang==='function'?withLang():'en']) || k;
+  list.innerHTML='';
+  page.classList.add('show');
+  page.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+
+  const jp=activeCountry()==='JP';
+
   for(const [en,ko] of WITH_PHRASES[k]){
-    const c=document.createElement('div');c.className='phrase-card';
-    const e=document.createElement('div');e.className='phrase-en';
-    e.textContent=(typeof localPhrase==='function'?localPhrase(en):en);
-    const q=document.createElement('div');q.className='phrase-ko';
-    const b=document.createElement('button');b.className='phrase-speak';b.type='button';
+    const card=document.createElement('div');
+    card.className='phrase-card';
+
+    const enEl=document.createElement('div');
+    enEl.className='phrase-en';
+    enEl.textContent=(typeof localPhrase==='function') ? localPhrase(en) : en;
+
+    const targetEl=document.createElement('div');
+    targetEl.className='phrase-ko';
+
+    const play=document.createElement('button');
+    play.type='button';
+    play.className='phrase-speak';
+
+    card.append(enEl,targetEl,play);
+    list.appendChild(card);
+
     if(jp){
-      q.textContent='…'; b.textContent='🔊 Play Japanese'; b.disabled=true;
-      c.append(e,q,b);list.appendChild(c);
-      const target=await ja(en);
-      q.textContent=target;b.disabled=false;b.onclick=()=>speak(target,'ja-JP');
+      targetEl.textContent='…';
+      play.textContent='🔊 Play Japanese';
+      play.disabled=true;
+      const target=await translateJA(en);
+      targetEl.textContent=target;
+      play.disabled=false;
+      play.onclick=()=>speakTarget(target,'ja-JP');
     }else{
-      q.textContent=ko;b.textContent='🔊 Play Korean';b.onclick=()=>speak(ko,'ko-KR');
-      c.append(e,q,b);list.appendChild(c);
+      targetEl.textContent=ko;
+      play.textContent='🔊 Play Korean';
+      play.onclick=()=>speakTarget(ko,'ko-KR');
     }
   }
-  page.scrollTop=0;
 };
+
 window.closePhraseDetailPage=function(){
-  const page=$('#phraseDetailPage');
-  if(page){page.classList.remove('show');page.setAttribute('aria-hidden','true')}
-  document.documentElement.style.overflow='';document.body.style.overflow='';
+  const page=document.getElementById('phraseDetailPage');
+  if(page){
+    page.classList.remove('show');
+    page.setAttribute('aria-hidden','true');
+  }
+  document.body.style.overflow='';
 };
 
-// One authoritative capture handler for situation cards.
-document.addEventListener('click',function(ev){
-  const btn=ev.target.closest&&ev.target.closest('#usefulCats .useful-cat');
-  if(!btn)return;
-  const cards=[...document.querySelectorAll('#usefulCats .useful-cat')];
-  const keys=Object.keys(window.WITH_PHRASES||{});
-  const i=cards.indexOf(btn);
-  if(i<0||!keys[i])return;
-  ev.preventDefault();ev.stopImmediatePropagation();
-  window.openPhraseCategory(keys[i]);
-},true);
-
-document.addEventListener('click',function(ev){
-  if(ev.target.closest&&ev.target.closest('#withCountryModal'))setTimeout(applyLabels,100);
-},true);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyLabels);
-else applyLabels();
-setTimeout(applyLabels,250);
+function fixUI(){
+  const h=document.querySelector('#home .banner.language h2');
+  if(h) h.textContent='Translation & Phrase';
+  const useful=document.getElementById('usefulPhrases');
+  if(useful) useful.style.display='block';
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fixUI);
+else fixUI();
+setTimeout(fixUI,300);
 })();
 </script>
 

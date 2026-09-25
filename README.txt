@@ -1,7 +1,8 @@
-WITH Korea + Japan v4
-Fixes:
-- Banner: Translation & Phrase
-- Situation cards open the full phrase page.
-- Korea mode: Korean phrase + Korean speech.
-- Japan mode: same situations, Japanese phrase + Japanese speech.
-- Country state is shared with phrase feature.
+WITH Korea + Japan v5
+Critical fix:
+- Phrase data is declared as lexical const WITH_PHRASES in the original app.
+- v4 incorrectly checked window.WITH_PHRASES, so situation clicks returned without opening.
+- v5 uses the actual WITH_PHRASES constant.
+- Korea: situation -> Korean phrases -> Korean speech.
+- Japan: same situation -> Japanese phrases -> Japanese speech.
+- Banner: Translation & Phrase.
