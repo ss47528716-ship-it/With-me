@@ -1569,47 +1569,6 @@ document.addEventListener('click',function(e){
  setTimeout(labels,0);
 })();
 </script>
-
-<style id="with-country-position-v11">
-#withCountryChange{
-  position:fixed !important;
-  right:24px !important;
-  top:92px !important;
-  bottom:auto !important;
-  left:auto !important;
-  margin:0 !important;
-  z-index:10020 !important;
-  width:auto !important;
-  max-width:180px !important;
-}
-@media (max-width:600px){
-  #withCountryChange{
-    right:24px !important;
-    top:92px !important;
-    bottom:auto !important;
-    left:auto !important;
-  }
-}
-</style>
-<script id="with-country-position-v11-js">
-(function(){
- function pin(){
-   const b=document.getElementById('withCountryChange');
-   if(!b)return;
-   b.style.setProperty('position','fixed','important');
-   b.style.setProperty('right','24px','important');
-   b.style.setProperty('top','92px','important');
-   b.style.setProperty('bottom','auto','important');
-   b.style.setProperty('left','auto','important');
-   b.style.setProperty('margin','0','important');
-   b.style.setProperty('z-index','10020','important');
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pin);else pin();
- setTimeout(pin,50);setTimeout(pin,300);setTimeout(pin,1000);
-})();
-</script>
-
-
 <script id="with-nation-label-v13">
 (function(){
  function labelNation(){
@@ -1622,6 +1581,49 @@ document.addEventListener('click',function(e){
  setTimeout(labelNation,300);
  setTimeout(labelNation,1000);
  document.addEventListener('click',function(){setTimeout(labelNation,30);});
+})();
+</script>
+
+
+<style id="with-country-under-language-v14">
+#withCountryChange{
+  position:fixed !important;
+  bottom:auto !important;
+  left:auto !important;
+  margin:0 !important;
+  z-index:9989 !important;
+  width:auto !important;
+  max-width:180px !important;
+}
+</style>
+<script id="with-country-under-language-v14-js">
+(function(){
+ function placeNation(){
+   const lang=document.getElementById('withLangChange');
+   const nation=document.getElementById('withCountryChange');
+   if(!lang || !nation)return false;
+   const r=lang.getBoundingClientRect();
+   nation.style.setProperty('position','fixed','important');
+   nation.style.setProperty('right',(window.innerWidth-r.right)+'px','important');
+   nation.style.setProperty('top',(r.bottom+8)+'px','important');
+   nation.style.setProperty('bottom','auto','important');
+   nation.style.setProperty('left','auto','important');
+   nation.style.setProperty('margin','0','important');
+   return true;
+ }
+ function boot(){
+   let n=0;
+   const t=setInterval(function(){
+     placeNation();
+     if(++n>30)clearInterval(t);
+   },100);
+   placeNation();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+ else boot();
+ window.addEventListener('resize',placeNation);
+ window.addEventListener('orientationchange',function(){setTimeout(placeNation,100)});
+ document.addEventListener('click',function(){setTimeout(placeNation,50)},true);
 })();
 </script>
 
