@@ -1,2 +1,2 @@
-WITH v24
-Entire My location card UI is fixed in English regardless of Language selection. Address remains the actual saved address.
+WITH v23
+'My location' heading is permanently English. Other location-card text still follows selected Language.

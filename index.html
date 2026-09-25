@@ -2025,43 +2025,6 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
-
-<script id="with-location-all-english-v24">
-(function(){
- function fix(){
-   const card=document.querySelector('.home-location-card');
-   if(!card)return;
-   const title=card.querySelector('h2,h3,.home-location-title,.location-title');
-   if(title)title.textContent='My location';
-
-   const success=[...card.querySelectorAll('*')].find(el=>{
-     const s=(el.textContent||'').trim();
-     return /Current location set successfully|현재 위치가 저장|現在地を保存しました|当前位置已保存|目前位置已儲存/.test(s)
-       && el.children.length===0;
-   });
-   if(success)success.textContent='✓ Current location set successfully.';
-
-   const save=[...card.querySelectorAll('button')].find(el=>
-     /Save current location|현재 위치 저장|現在地を保存|保存当前位置|儲存目前位置/.test(el.textContent||'')
-   );
-   if(save)save.textContent='◎ Save current location';
-
-   const unset=[...card.querySelectorAll('*')].find(el=>{
-     const s=(el.textContent||'').trim();
-     return /No location saved yet|아직 저장된 위치|保存された位置情報|尚未保存位置|尚未儲存位置/.test(s)
-       && el.children.length===0;
-   });
-   if(unset)unset.textContent='No location saved yet.';
- }
- function run(){fix();requestAnimationFrame(fix);setTimeout(fix,80);setTimeout(fix,250);}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
- document.querySelectorAll('#withLangGate .langchoice').forEach(b=>b.addEventListener('click',run,true));
- // Protect location card from language renderer repainting it.
- const card=document.querySelector('.home-location-card');
- if(card)new MutationObserver(()=>queueMicrotask(fix)).observe(card,{subtree:true,childList:true,characterData:true});
-})();
-</script>
-
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */
