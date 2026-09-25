@@ -1,8 +1,5 @@
-WITH Korea + Japan v5
-Critical fix:
-- Phrase data is declared as lexical const WITH_PHRASES in the original app.
-- v4 incorrectly checked window.WITH_PHRASES, so situation clicks returned without opening.
-- v5 uses the actual WITH_PHRASES constant.
-- Korea: situation -> Korean phrases -> Korean speech.
-- Japan: same situation -> Japanese phrases -> Japanese speech.
-- Banner: Translation & Phrase.
+WITH Korea + Japan v7
+- Fix: in Japan mode, translated text containing numbers is spoken with Japanese TTS.
+- ASCII/full-width digits are converted to Japanese digit readings before speech.
+- Explicit ja-JP voice selection prevents Korean number pronunciation fallback.
+- Korea mode speech behavior remains unchanged.

@@ -1482,14 +1482,80 @@ window.closePhraseDetailPage=function(){
 };
 
 function fixUI(){
+  const jp=activeCountry()==='JP';
   const h=document.querySelector('#home .banner.language h2');
   if(h) h.textContent='Translation & Phrase';
   const useful=document.getElementById('usefulPhrases');
   if(useful) useful.style.display='block';
+  const title=document.querySelector('#usefulPhrases .useful-title');
+  const sub=document.querySelector('#usefulPhrases .useful-sub');
+  if(title) title.textContent=jp?'Useful Japanese phrases':'Useful Korean phrases';
+  if(sub) sub.textContent=jp
+    ?'Choose a situation. Tap 🔊 to play the Japanese phrase.'
+    :'Choose a situation. Tap 🔊 to play the Korean phrase.';
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fixUI);
 else fixUI();
 setTimeout(fixUI,300);
+document.addEventListener('click',function(e){
+  if(e.target && e.target.closest && e.target.closest('#withCountryModal')){
+    setTimeout(fixUI,120);
+  }
+},true);
+})();
+</script>
+
+
+<script id="with-japan-number-speech-fix-v7">
+(function(){
+'use strict';
+
+function isJapanMode(){
+  return localStorage.getItem('with_active_country')==='JP';
+}
+function japaneseNumberSpeechText(text){
+  // Keep Japanese text intact; convert ASCII/full-width digits to Japanese readings
+  // so Android/Samsung TTS cannot fall back to Korean number pronunciation.
+  const fw={'０':'0','１':'1','２':'2','３':'3','４':'4','５':'5','６':'6','７':'7','８':'8','９':'9'};
+  text=String(text||'').replace(/[０-９]/g,d=>fw[d]);
+  const digit={'0':'ゼロ','1':'いち','2':'に','3':'さん','4':'よん','5':'ご','6':'ろく','7':'なな','8':'はち','9':'きゅう'};
+  return text.replace(/\d+/g,n=>[...n].map(d=>digit[d]).join(' '));
+}
+function speakJapaneseStrict(text){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(japaneseNumberSpeechText(text));
+  u.lang='ja-JP';
+  u.rate=.9;
+  const voices=speechSynthesis.getVoices();
+  const ja=voices.find(v=>(v.lang||'').toLowerCase()==='ja-jp') ||
+           voices.find(v=>(v.lang||'').toLowerCase().startsWith('ja'));
+  if(ja)u.voice=ja;
+  speechSynthesis.speak(u);
+}
+
+// Replace the global translation playback entry point after all original scripts loaded.
+const oldSpeak=window.speakTranslation;
+window.speakTranslation=function(){
+  if(!isJapanMode()){
+    if(typeof oldSpeak==='function') return oldSpeak.apply(this,arguments);
+    return;
+  }
+  const out=document.getElementById('translateOut');
+  const text=out ? out.textContent.trim() : '';
+  if(text) speakJapaneseStrict(text);
+};
+
+// Capture the translation-page speaker button too, so old inline Korean handlers cannot win.
+document.addEventListener('click',function(e){
+  if(!isJapanMode())return;
+  const btn=e.target.closest && e.target.closest('#speakTranslation, .speak-translation, [onclick*="speakTranslation"]');
+  if(!btn)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  const out=document.getElementById('translateOut');
+  const text=out ? out.textContent.trim() : '';
+  if(text)speakJapaneseStrict(text);
+},true);
 })();
 </script>
 
