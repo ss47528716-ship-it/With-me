@@ -1,23 +1,8 @@
-WITH — Korea + Japan complete deployment
-
-This is a complete Vercel deployment package.
-
-Behavior
-- Existing Korea mode remains available.
-- Travel-country button at bottom right: Auto / Korea / Japan.
-- Auto mode checks the saved location and switches to Japan only when the country is Japan.
-- Japan mode changes destination copy, translation target/speech to Japanese, and emergency information.
-- Japan emergency: Police 110, Fire/Ambulance 119, JNTO Japan Visitor Hotline 050-3816-2787.
-- Existing Find my way and Nearby use the saved GPS location and Google Maps.
-- Existing /H001 through /H005 rewrites are preserved in vercel.json.
-
-Deploy
-1. Extract this ZIP.
-2. Upload the contents as a new Vercel project (index.html must be at project root).
-3. Open the deployed URL.
-4. For testing from Korea, tap the bottom-right country button and choose Japan.
-
-Update v2
-- Home banner is named 'Translate phrase' in both Korea and Japan modes.
-- Japan mode now keeps the same situation-based phrase feature as Korea.
-- Phrase output and speech switch to Japanese in Japan mode.
+WITH Korea + Japan — rebuilt deployment
+- index.html is at project root.
+- Korea/Japan selector retained.
+- Home translation banner name: Translate phrase.
+- Korea: original situation-based Korean phrases.
+- Japan: same situation categories and English source phrases, translated to Japanese when a category opens; Japanese speech playback.
+- Previous mutation-observer phrase patch removed to avoid startup lockups.
+Deploy the CONTENTS of this folder/repository root to Vercel.

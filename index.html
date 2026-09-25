@@ -1288,7 +1288,7 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
     const langBanner=$('#home .banner.language');
     if(langBanner){
       const h=langBanner.querySelector('h2'), p=langBanner.querySelector('p'), prop=langBanner.querySelector('.pose-prop.talk');
-      if(h)h.textContent=jp?'Translate to Japanese':'Translate to Korean';
+      if(h)h.textContent='Translate phrase';
       if(p)p.textContent=jp?'Type what you want to say and translate it into Japanese.':'Type what you want to say and translate it into Korean.';
       if(prop)prop.textContent=jp?'こんにちは':'안녕';
     }
@@ -1301,7 +1301,7 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
     if($('#translateBtn'))$('#translateBtn').textContent=jp?'Translate to Japanese':'Translate to Korean';
 
     const useful=$('#usefulPhrases');
-    if(useful)useful.style.display=jp?'none':'block';
+    if(useful)useful.style.display='block';
 
     if($('#dest'))$('#dest').placeholder=jp?'Where do you want to go in Japan?':'Where do you want to go?';
 
@@ -1395,71 +1395,90 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
 .country-sheet .country-close{text-align:center;border-color:#d7dbd2;font-weight:700}
 </style>
 
-
-<script id="with-japan-phrases-v2">
+<script id="with-japan-phrase-safe-v3">
 (function(){
 'use strict';
 
-const JP_PHRASES={
-"Do you have an English menu?":"英語のメニューはありますか？","What do you recommend?":"おすすめは何ですか？","Please make it not spicy.":"辛くしないでください。","Please make it less spicy.":"辛さ控えめでお願いします。","I can't eat spicy food.":"辛いものが食べられません。","Does this contain pork?":"これは豚肉が入っていますか？","Does this contain seafood?":"これは海鮮が入っていますか？","I'm vegetarian.":"ベジタリアンです。","I have a food allergy.":"食物アレルギーがあります。","Can I order this?":"これを注文できますか？","One more, please.":"もう一つお願いします。","Can I have some water?":"お水をいただけますか？","Can I get this to go?":"持ち帰りにできますか？","Can we split the bill?":"別々に会計できますか？","Can I pay by card?":"カードで支払えますか？","The bill, please.":"お会計をお願いします。",
-"Where is the restroom?":"トイレはどこですか？","What's the Wi-Fi password?":"Wi-Fiのパスワードは何ですか？","Please take me here.":"ここまでお願いします。","Please stop here.":"ここで止めてください。","How long will it take?":"どのくらいかかりますか？","How much will it cost?":"料金はいくらくらいですか？","I have a reservation.":"予約しています。","Can I leave my luggage here?":"荷物を預けてもいいですか？","How much is this?":"これはいくらですか？","Do you speak English?":"英語を話せますか？","Please speak slowly.":"ゆっくり話してください。","Could you say that again?":"もう一度言っていただけますか？","I don't understand.":"わかりません。","Please help me.":"助けてください。","I lost my phone.":"携帯電話をなくしました。","I lost my wallet.":"財布をなくしました。","I lost my passport.":"パスポートをなくしました。","Where is the subway station?":"地下鉄の駅はどこですか？","Where is the bus stop?":"バス停はどこですか？","I need to see a doctor.":"診察を受けたいです。","Where is the emergency room?":"救急外来はどこですか？","Could you take a photo for me?":"写真を撮ってもらえますか？","How do I get there?":"そこへはどう行けばいいですか？"
-};
+const $=s=>document.querySelector(s);
+const cache=new Map();
 
-function country(){return localStorage.getItem('with_active_country')||'KR'}
-function phraseTarget(en,ko){return country()==='JP'?(JP_PHRASES[en]||en):ko}
-function phrasePlayLabel(){return country()==='JP'?'🔊 Play Japanese':((window.WITH_PHRASE_UI?.[window.withLang?.()||'en']||window.WITH_PHRASE_UI?.en)?.play||'🔊 Play Korean')}
-function speakPhraseTarget(txt){
- if(!('speechSynthesis' in window))return;
- speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);
- u.lang=country()==='JP'?'ja-JP':'ko-KR';u.rate=.9;speechSynthesis.speak(u);
+function isJapan(){ return (localStorage.getItem('with_active_country')||'KR')==='JP'; }
+
+async function toJapanese(text){
+  if(cache.has(text)) return cache.get(text);
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ja&dt=t&q='+encodeURIComponent(text));
+    if(!r.ok) throw new Error();
+    const d=await r.json();
+    const out=(d[0]||[]).map(x=>x[0]||'').join('') || text;
+    cache.set(text,out); return out;
+  }catch(e){ return text; }
 }
 
-function forceBannerName(){
- const h=document.querySelector('#home .banner.language h2');
- if(h)h.textContent='Translate phrase';
+function speak(text, lang){
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang; u.rate=.9;
+    speechSynthesis.speak(u);
+  }catch(e){}
 }
 
-function updatePhraseSection(){
- const wrap=document.getElementById('usefulPhrases');
- if(wrap)wrap.style.display='block';
- const title=wrap?.querySelector('.useful-title'),sub=wrap?.querySelector('.useful-sub');
- if(country()==='JP'){
-   if(title)title.textContent='Useful Japanese phrases';
-   if(sub)sub.textContent='Choose a situation. Tap 🔊 to play the Japanese phrase.';
- } else if(typeof window.applyPhraseLanguage==='function'){
-   window.applyPhraseLanguage();
- }
- forceBannerName();
+async function openForCountry(k){
+  const phrases=window.WITH_PHRASES || (typeof WITH_PHRASES!=='undefined' ? WITH_PHRASES : null);
+  if(!phrases || !phrases[k]) return;
+
+  const cats=$('#usefulCats'), panel=$('#phrasePanel'), title=$('#phraseTitle'), list=$('#phraseList');
+  if(cats) cats.style.display='none';
+  if(panel) panel.classList.add('show');
+  if(title) title.textContent=k;
+  if(!list) return;
+  list.innerHTML='';
+
+  const jp=isJapan();
+  for(const [en,ko] of phrases[k]){
+    const c=document.createElement('div'); c.className='phrase-card';
+    const e=document.createElement('div'); e.className='phrase-en'; e.textContent=en;
+    const q=document.createElement('div'); q.className='phrase-ko';
+    q.textContent=jp?'Translating…':ko;
+    const b=document.createElement('button'); b.className='phrase-speak'; b.type='button';
+    b.textContent=jp?'🔊 Play Japanese':'🔊 Play Korean';
+    c.append(e,q,b); list.appendChild(c);
+
+    if(jp){
+      const ja=await toJapanese(en);
+      q.textContent=ja;
+      b.onclick=()=>speak(ja,'ja-JP');
+    }else{
+      b.onclick=()=>speak(ko,'ko-KR');
+    }
+  }
 }
 
-window.openPhraseCategory=function(k){
- const page=document.getElementById('phraseDetailPage');
- const title=document.getElementById('phraseDetailTitle');
- const list=document.getElementById('phraseDetailList');
- if(!page||!title||!list||!window.WITH_PHRASES?.[k])return;
- const l=typeof window.withLang==='function'?window.withLang():'en';
- title.textContent=(window.WITH_CAT_I18N?.[k]?.[l])||k;
- list.innerHTML='';
- window.WITH_PHRASES[k].forEach(([en,ko])=>{
-   const target=phraseTarget(en,ko);
-   const c=document.createElement('div');c.className='phrase-card';
-   const e=document.createElement('div');e.className='phrase-en';
-   e.textContent=(typeof window.localPhrase==='function'?window.localPhrase(en):en);
-   const q=document.createElement('div');q.className='phrase-ko';q.textContent=target;
-   const b=document.createElement('button');b.className='phrase-speak';b.type='button';b.textContent=phrasePlayLabel();
-   b.onclick=()=>speakPhraseTarget(target);
-   c.append(e,q,b);list.appendChild(c);
- });
- page.classList.add('show');page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';window.scrollTo(0,0);
-};
+function applyPhraseCountryUI(){
+  const banner=$('#home .banner.language h2');
+  if(banner) banner.textContent='Translate phrase';
 
-const obs=new MutationObserver(()=>{forceBannerName();const w=document.getElementById('usefulPhrases');if(w&&country()==='JP'&&w.style.display==='none')w.style.display='block'});
-obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['style']});
+  const useful=$('#usefulPhrases');
+  if(useful) useful.style.display='block';
 
-window.addEventListener('storage',updatePhraseSection);
-document.addEventListener('click',()=>setTimeout(updatePhraseSection,30),true);
-setTimeout(updatePhraseSection,0);
-setTimeout(updatePhraseSection,500);
+  const title=$('#usefulPhrases .useful-title');
+  const sub=$('#usefulPhrases .useful-sub');
+  if(isJapan()){
+    if(title) title.textContent='Useful Japanese phrases';
+    if(sub) sub.textContent='Choose a situation. Tap 🔊 to play the Japanese phrase.';
+  }
+}
+
+window.openPhraseCategory=openForCountry;
+
+document.addEventListener('DOMContentLoaded',()=>setTimeout(applyPhraseCountryUI,0));
+document.addEventListener('click',e=>{
+  if(e.target && (e.target.id==='withCountryChange' || e.target.closest?.('#withCountryModal'))){
+    setTimeout(applyPhraseCountryUI,80);
+  }
+});
+setTimeout(applyPhraseCountryUI,100);
 })();
 </script>
 
