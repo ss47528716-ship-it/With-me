@@ -1,2 +1,2 @@
-WITH v15
-Language selector redesigned to match Nation bottom-sheet modal. Existing language choices and apply logic retained.
+WITH v16
+Added 한국어 to Language selector. Existing languages retained.

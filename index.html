@@ -465,7 +465,7 @@ body.with-modal-open{overflow:hidden!important;touch-action:none}
  #usefulCats .phrase-card-label{font-size:17px!important}
 }
 </style>
-</head><body><div id="withLangGate"><div class="langbox"><div>WELCOME TO KOREA</div><div class="langbrand">WITH</div><h2 class="langtitle">Choose your language</h2><p class="langsub">언어를 선택해 주세요</p><div class="langgrid"><button class="langchoice" data-lang="en">English</button><button class="langchoice" data-lang="ja">日本語</button><button class="langchoice" data-lang="zh-CN">简体中文</button><button class="langchoice" data-lang="zh-TW">繁體中文</button></div></div></div><button id="withLangChange" type="button">🌐 Language</button><div class="app">
+</head><body><div id="withLangGate"><div class="langbox"><div>WELCOME TO KOREA</div><div class="langbrand">WITH</div><h2 class="langtitle">Choose your language</h2><p class="langsub">언어를 선택해 주세요</p><div class="langgrid"><button class="langchoice" data-lang="en">English</button><button class="langchoice" data-lang="ko">한국어</button><button class="langchoice" data-lang="ja">日本語</button><button class="langchoice" data-lang="zh-CN">简体中文</button><button class="langchoice" data-lang="zh-TW">繁體中文</button></div></div></div><button id="withLangChange" type="button">🌐 Language</button><div class="app">
 <div class="head"><div class="brandrow"><div class="brandcopy"><small>WELCOME TO KOREA</small><h1>WITH</h1><p>Your companion in Korea.</p></div><div class="mascot" aria-label="WITH mascot"><span class="mascot-bag"></span></div></div></div>
 
 <section id="home" class="content">
@@ -1681,6 +1681,41 @@ document.addEventListener('click',function(e){
  gate.addEventListener('click',function(e){
    if(e.target===gate)gate.classList.add('hidden');
  });
+})();
+</script>
+
+
+<script id="with-korean-ui-language-v16">
+(function(){
+ const koBtn=document.querySelector('.langchoice[data-lang="ko"]');
+ if(!koBtn)return;
+
+ async function trKo(s){
+   try{
+     const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q='+encodeURIComponent(s));
+     const j=await r.json();
+     return (j&&j[0]?j[0].map(x=>x&&x[0]||'').join(''):'')||s;
+   }catch(e){return s}
+ }
+
+ koBtn.addEventListener('click',async function(e){
+   e.stopImmediatePropagation();
+   const els=[...document.querySelectorAll('[data-i18n]')];
+   await Promise.all(els.map(async el=>{
+     const base=el.dataset.withOriginalText || el.textContent.trim();
+     if(!el.dataset.withOriginalText)el.dataset.withOriginalText=base;
+     if(base)el.textContent=await trKo(base);
+   }));
+   const ph=[...document.querySelectorAll('[data-i18n-placeholder]')];
+   await Promise.all(ph.map(async el=>{
+     const base=el.dataset.withOriginalPlaceholder || el.placeholder;
+     if(!el.dataset.withOriginalPlaceholder)el.dataset.withOriginalPlaceholder=base;
+     if(base)el.placeholder=await trKo(base);
+   }));
+   localStorage.setItem('with_ui_lang','ko');
+   document.getElementById('withLangGate').classList.add('hidden');
+   document.getElementById('withLangChange').style.display='block';
+ },true);
 })();
 </script>
 
