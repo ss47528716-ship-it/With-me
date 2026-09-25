@@ -1574,7 +1574,7 @@ document.addEventListener('click',function(e){
 #withCountryChange{
   position:fixed !important;
   right:24px !important;
-  top:142px !important;
+  top:92px !important;
   bottom:auto !important;
   left:auto !important;
   margin:0 !important;
@@ -1585,7 +1585,7 @@ document.addEventListener('click',function(e){
 @media (max-width:600px){
   #withCountryChange{
     right:24px !important;
-    top:142px !important;
+    top:92px !important;
     bottom:auto !important;
     left:auto !important;
   }
@@ -1598,7 +1598,7 @@ document.addEventListener('click',function(e){
    if(!b)return;
    b.style.setProperty('position','fixed','important');
    b.style.setProperty('right','24px','important');
-   b.style.setProperty('top','142px','important');
+   b.style.setProperty('top','92px','important');
    b.style.setProperty('bottom','auto','important');
    b.style.setProperty('left','auto','important');
    b.style.setProperty('margin','0','important');
@@ -1606,6 +1606,22 @@ document.addEventListener('click',function(e){
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pin);else pin();
  setTimeout(pin,50);setTimeout(pin,300);setTimeout(pin,1000);
+})();
+</script>
+
+
+<script id="with-nation-label-v13">
+(function(){
+ function labelNation(){
+   const b=document.getElementById('withCountryChange');
+   if(b) b.textContent='🌏 Nation';
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',labelNation);
+ else labelNation();
+ setTimeout(labelNation,50);
+ setTimeout(labelNation,300);
+ setTimeout(labelNation,1000);
+ document.addEventListener('click',function(){setTimeout(labelNation,30);});
 })();
 </script>
 
