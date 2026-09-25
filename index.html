@@ -1275,6 +1275,7 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
 
   function applyCountry(code){
     activeCountry=code==='JP'?'JP':'KR';
+    localStorage.setItem('with_active_country',activeCountry);
     const jp=activeCountry==='JP';
     document.body.dataset.travelCountry=activeCountry;
     localStorage.setItem('with_active_country',activeCountry);
@@ -1288,7 +1289,7 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
     const langBanner=$('#home .banner.language');
     if(langBanner){
       const h=langBanner.querySelector('h2'), p=langBanner.querySelector('p'), prop=langBanner.querySelector('.pose-prop.talk');
-      if(h)h.textContent='Translate phrase';
+      if(h)h.textContent='Translation & Phrase';
       if(p)p.textContent=jp?'Type what you want to say and translate it into Japanese.':'Type what you want to say and translate it into Korean.';
       if(prop)prop.textContent=jp?'こんにちは':'안녕';
     }
@@ -1395,90 +1396,103 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
 .country-sheet .country-close{text-align:center;border-color:#d7dbd2;font-weight:700}
 </style>
 
-<script id="with-japan-phrase-safe-v3">
+<script id="with-country-phrase-fix-v4">
 (function(){
 'use strict';
-
 const $=s=>document.querySelector(s);
-const cache=new Map();
+const jaCache=new Map();
 
-function isJapan(){ return (localStorage.getItem('with_active_country')||'KR')==='JP'; }
+function country(){
+  return localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
+}
+function isJP(){return country()==='JP';}
 
-async function toJapanese(text){
-  if(cache.has(text)) return cache.get(text);
+async function ja(text){
+  if(jaCache.has(text)) return jaCache.get(text);
   try{
     const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ja&dt=t&q='+encodeURIComponent(text));
-    if(!r.ok) throw new Error();
-    const d=await r.json();
-    const out=(d[0]||[]).map(x=>x[0]||'').join('') || text;
-    cache.set(text,out); return out;
-  }catch(e){ return text; }
+    if(!r.ok) throw 0;
+    const d=await r.json(), out=(d[0]||[]).map(x=>x[0]||'').join('')||text;
+    jaCache.set(text,out); return out;
+  }catch(e){return text}
 }
-
-function speak(text, lang){
+function speak(text,lang){
   try{
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-    u.lang=lang; u.rate=.9;
+    u.lang=lang;u.rate=.88;u.volume=1;
+    const voices=speechSynthesis.getVoices();
+    const v=voices.find(x=>(x.lang||'').toLowerCase().startsWith(lang.slice(0,2)));
+    if(v)u.voice=v;
     speechSynthesis.speak(u);
   }catch(e){}
 }
+function langNow(){try{return typeof withLang==='function'?withLang():'en'}catch(e){return'en'}}
+function categoryLabel(k){
+  const l=langNow();
+  const raw=(window.WITH_CAT_I18N&&WITH_CAT_I18N[k]&&WITH_CAT_I18N[k][l])||k;
+  return String(raw).replace(/^[^\p{L}\p{N}]+/u,'').trim();
+}
+function applyLabels(){
+  const h=$('#home .banner.language h2'); if(h)h.textContent='Translation & Phrase';
+  const useful=$('#usefulPhrases'); if(useful)useful.style.display='block';
+  const title=$('#usefulPhrases .useful-title'), sub=$('#usefulPhrases .useful-sub');
+  if(isJP()){
+    if(title)title.textContent='Useful Japanese phrases';
+    if(sub)sub.textContent='Choose a situation. Tap 🔊 to play the Japanese phrase.';
+  }
+}
+window.openPhraseCategory=async function(k){
+  if(!window.WITH_PHRASES || !WITH_PHRASES[k])return;
+  const page=$('#phraseDetailPage'), title=$('#phraseDetailTitle'), list=$('#phraseDetailList');
+  if(!page||!title||!list)return;
+  title.textContent=categoryLabel(k); list.innerHTML='';
+  page.classList.add('show');page.setAttribute('aria-hidden','false');
+  document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
 
-async function openForCountry(k){
-  const phrases=window.WITH_PHRASES || (typeof WITH_PHRASES!=='undefined' ? WITH_PHRASES : null);
-  if(!phrases || !phrases[k]) return;
-
-  const cats=$('#usefulCats'), panel=$('#phrasePanel'), title=$('#phraseTitle'), list=$('#phraseList');
-  if(cats) cats.style.display='none';
-  if(panel) panel.classList.add('show');
-  if(title) title.textContent=k;
-  if(!list) return;
-  list.innerHTML='';
-
-  const jp=isJapan();
-  for(const [en,ko] of phrases[k]){
-    const c=document.createElement('div'); c.className='phrase-card';
-    const e=document.createElement('div'); e.className='phrase-en'; e.textContent=en;
-    const q=document.createElement('div'); q.className='phrase-ko';
-    q.textContent=jp?'Translating…':ko;
-    const b=document.createElement('button'); b.className='phrase-speak'; b.type='button';
-    b.textContent=jp?'🔊 Play Japanese':'🔊 Play Korean';
-    c.append(e,q,b); list.appendChild(c);
-
+  const jp=isJP();
+  for(const [en,ko] of WITH_PHRASES[k]){
+    const c=document.createElement('div');c.className='phrase-card';
+    const e=document.createElement('div');e.className='phrase-en';
+    e.textContent=(typeof localPhrase==='function'?localPhrase(en):en);
+    const q=document.createElement('div');q.className='phrase-ko';
+    const b=document.createElement('button');b.className='phrase-speak';b.type='button';
     if(jp){
-      const ja=await toJapanese(en);
-      q.textContent=ja;
-      b.onclick=()=>speak(ja,'ja-JP');
+      q.textContent='…'; b.textContent='🔊 Play Japanese'; b.disabled=true;
+      c.append(e,q,b);list.appendChild(c);
+      const target=await ja(en);
+      q.textContent=target;b.disabled=false;b.onclick=()=>speak(target,'ja-JP');
     }else{
-      b.onclick=()=>speak(ko,'ko-KR');
+      q.textContent=ko;b.textContent='🔊 Play Korean';b.onclick=()=>speak(ko,'ko-KR');
+      c.append(e,q,b);list.appendChild(c);
     }
   }
-}
+  page.scrollTop=0;
+};
+window.closePhraseDetailPage=function(){
+  const page=$('#phraseDetailPage');
+  if(page){page.classList.remove('show');page.setAttribute('aria-hidden','true')}
+  document.documentElement.style.overflow='';document.body.style.overflow='';
+};
 
-function applyPhraseCountryUI(){
-  const banner=$('#home .banner.language h2');
-  if(banner) banner.textContent='Translate phrase';
+// One authoritative capture handler for situation cards.
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest&&ev.target.closest('#usefulCats .useful-cat');
+  if(!btn)return;
+  const cards=[...document.querySelectorAll('#usefulCats .useful-cat')];
+  const keys=Object.keys(window.WITH_PHRASES||{});
+  const i=cards.indexOf(btn);
+  if(i<0||!keys[i])return;
+  ev.preventDefault();ev.stopImmediatePropagation();
+  window.openPhraseCategory(keys[i]);
+},true);
 
-  const useful=$('#usefulPhrases');
-  if(useful) useful.style.display='block';
-
-  const title=$('#usefulPhrases .useful-title');
-  const sub=$('#usefulPhrases .useful-sub');
-  if(isJapan()){
-    if(title) title.textContent='Useful Japanese phrases';
-    if(sub) sub.textContent='Choose a situation. Tap 🔊 to play the Japanese phrase.';
-  }
-}
-
-window.openPhraseCategory=openForCountry;
-
-document.addEventListener('DOMContentLoaded',()=>setTimeout(applyPhraseCountryUI,0));
-document.addEventListener('click',e=>{
-  if(e.target && (e.target.id==='withCountryChange' || e.target.closest?.('#withCountryModal'))){
-    setTimeout(applyPhraseCountryUI,80);
-  }
-});
-setTimeout(applyPhraseCountryUI,100);
+document.addEventListener('click',function(ev){
+  if(ev.target.closest&&ev.target.closest('#withCountryModal'))setTimeout(applyLabels,100);
+},true);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyLabels);
+else applyLabels();
+setTimeout(applyLabels,250);
 })();
 </script>
 
