@@ -1,2 +1,2 @@
-WITH v14
-Nation button is positioned from the actual Language button bounding box: 8px directly below, right edges aligned.
+WITH v15
+Language selector redesigned to match Nation bottom-sheet modal. Existing language choices and apply logic retained.

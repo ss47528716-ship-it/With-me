@@ -1627,6 +1627,63 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
+
+<style id="with-language-bottom-sheet-v15">
+#withLangGate{
+  position:fixed !important;
+  z-index:20000 !important;
+  inset:0 !important;
+  background:#15171488 !important;
+  display:none !important;
+  align-items:flex-end !important;
+  justify-content:center !important;
+  padding:0 !important;
+  backdrop-filter:blur(5px) !important;
+}
+#withLangGate:not(.hidden){display:flex !important}
+#withLangGate.hidden{display:none !important}
+#withLangGate .langbox{
+  width:min(430px,100%) !important;
+  background:#fff !important;
+  padding:12px 22px calc(22px + env(safe-area-inset-bottom)) !important;
+  border-radius:26px 26px 0 0 !important;
+  text-align:left !important;
+  box-sizing:border-box !important;
+}
+#withLangGate .langbox:before{
+  content:'';display:block;width:44px;height:5px;border-radius:99px;
+  background:#d5d8d1;margin:0 auto 18px;
+}
+#withLangGate .langbox>div:first-child,
+#withLangGate .langbrand{display:none !important}
+#withLangGate .langtitle{
+  font-size:20px !important;font-weight:900 !important;margin:0 0 6px !important;
+}
+#withLangGate .langsub{
+  font-size:13px !important;opacity:.62 !important;margin:0 0 16px !important;
+}
+#withLangGate .langgrid{
+  display:grid !important;grid-template-columns:1fr !important;gap:9px !important;
+}
+#withLangGate .langchoice{
+  width:100% !important;text-align:left !important;
+  border:1.5px solid #171917 !important;background:#fff !important;
+  border-radius:14px !important;padding:14px 15px !important;
+  font:800 15px/1.2 inherit !important;box-shadow:none !important;color:#171917 !important;
+}
+#withLangGate .langchoice:first-child{background:#fff !important}
+</style>
+<script id="with-language-bottom-sheet-v15-js">
+(function(){
+ const gate=document.getElementById('withLangGate');
+ if(!gate)return;
+ // Close when tapping the dimmed backdrop, same interaction style as Nation.
+ gate.addEventListener('click',function(e){
+   if(e.target===gate)gate.classList.add('hidden');
+ });
+})();
+</script>
+
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */
