@@ -1,0 +1,44 @@
+{
+  "rewrites": [
+    {
+      "source": "/H001",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H002",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H003",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H004",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H005",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H001/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H002/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H003/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H004/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/H005/",
+      "destination": "/index.html"
+    }
+  ]
+}
