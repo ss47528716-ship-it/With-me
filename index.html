@@ -1570,24 +1570,45 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
-<style id="with-country-button-position-v10">
-#withCountryChange{position:static!important;inset:auto!important;margin:10px 0 0 auto!important;width:max-content!important;z-index:auto!important}
-#withCountryAnchor{display:flex;flex-direction:column;align-items:flex-end;width:100%}
-</style>
-<script id="with-country-button-move-v10">
-(function(){
-function move(){
- const btn=document.getElementById('withCountryChange'); if(!btn)return false;
- const lang=[...document.querySelectorAll('button,a')].find(el=>/Language/i.test((el.textContent||'').trim())&&el.offsetParent!==null);
- if(!lang)return false;
- let a=document.getElementById('withCountryAnchor');
- if(!a){a=document.createElement('div');a.id='withCountryAnchor';lang.insertAdjacentElement('afterend',a)}
- a.appendChild(btn);return true;
+<style id="with-country-position-v11">
+#withCountryChange{
+  position:fixed !important;
+  right:24px !important;
+  top:142px !important;
+  bottom:auto !important;
+  left:auto !important;
+  margin:0 !important;
+  z-index:10020 !important;
+  width:auto !important;
+  max-width:180px !important;
 }
-function run(){if(move())return;let n=0,t=setInterval(()=>{if(move()||++n>30)clearInterval(t)},100)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+@media (max-width:600px){
+  #withCountryChange{
+    right:24px !important;
+    top:142px !important;
+    bottom:auto !important;
+    left:auto !important;
+  }
+}
+</style>
+<script id="with-country-position-v11-js">
+(function(){
+ function pin(){
+   const b=document.getElementById('withCountryChange');
+   if(!b)return;
+   b.style.setProperty('position','fixed','important');
+   b.style.setProperty('right','24px','important');
+   b.style.setProperty('top','142px','important');
+   b.style.setProperty('bottom','auto','important');
+   b.style.setProperty('left','auto','important');
+   b.style.setProperty('margin','0','important');
+   b.style.setProperty('z-index','10020','important');
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pin);else pin();
+ setTimeout(pin,50);setTimeout(pin,300);setTimeout(pin,1000);
 })();
 </script>
+
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */
