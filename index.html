@@ -1395,6 +1395,74 @@ window.addEventListener('popstate',()=>closePhraseDetailPage(true));
 .country-sheet .country-close{text-align:center;border-color:#d7dbd2;font-weight:700}
 </style>
 
+
+<script id="with-japan-phrases-v2">
+(function(){
+'use strict';
+
+const JP_PHRASES={
+"Do you have an English menu?":"英語のメニューはありますか？","What do you recommend?":"おすすめは何ですか？","Please make it not spicy.":"辛くしないでください。","Please make it less spicy.":"辛さ控えめでお願いします。","I can't eat spicy food.":"辛いものが食べられません。","Does this contain pork?":"これは豚肉が入っていますか？","Does this contain seafood?":"これは海鮮が入っていますか？","I'm vegetarian.":"ベジタリアンです。","I have a food allergy.":"食物アレルギーがあります。","Can I order this?":"これを注文できますか？","One more, please.":"もう一つお願いします。","Can I have some water?":"お水をいただけますか？","Can I get this to go?":"持ち帰りにできますか？","Can we split the bill?":"別々に会計できますか？","Can I pay by card?":"カードで支払えますか？","The bill, please.":"お会計をお願いします。",
+"Where is the restroom?":"トイレはどこですか？","What's the Wi-Fi password?":"Wi-Fiのパスワードは何ですか？","Please take me here.":"ここまでお願いします。","Please stop here.":"ここで止めてください。","How long will it take?":"どのくらいかかりますか？","How much will it cost?":"料金はいくらくらいですか？","I have a reservation.":"予約しています。","Can I leave my luggage here?":"荷物を預けてもいいですか？","How much is this?":"これはいくらですか？","Do you speak English?":"英語を話せますか？","Please speak slowly.":"ゆっくり話してください。","Could you say that again?":"もう一度言っていただけますか？","I don't understand.":"わかりません。","Please help me.":"助けてください。","I lost my phone.":"携帯電話をなくしました。","I lost my wallet.":"財布をなくしました。","I lost my passport.":"パスポートをなくしました。","Where is the subway station?":"地下鉄の駅はどこですか？","Where is the bus stop?":"バス停はどこですか？","I need to see a doctor.":"診察を受けたいです。","Where is the emergency room?":"救急外来はどこですか？","Could you take a photo for me?":"写真を撮ってもらえますか？","How do I get there?":"そこへはどう行けばいいですか？"
+};
+
+function country(){return localStorage.getItem('with_active_country')||'KR'}
+function phraseTarget(en,ko){return country()==='JP'?(JP_PHRASES[en]||en):ko}
+function phrasePlayLabel(){return country()==='JP'?'🔊 Play Japanese':((window.WITH_PHRASE_UI?.[window.withLang?.()||'en']||window.WITH_PHRASE_UI?.en)?.play||'🔊 Play Korean')}
+function speakPhraseTarget(txt){
+ if(!('speechSynthesis' in window))return;
+ speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);
+ u.lang=country()==='JP'?'ja-JP':'ko-KR';u.rate=.9;speechSynthesis.speak(u);
+}
+
+function forceBannerName(){
+ const h=document.querySelector('#home .banner.language h2');
+ if(h)h.textContent='Translate phrase';
+}
+
+function updatePhraseSection(){
+ const wrap=document.getElementById('usefulPhrases');
+ if(wrap)wrap.style.display='block';
+ const title=wrap?.querySelector('.useful-title'),sub=wrap?.querySelector('.useful-sub');
+ if(country()==='JP'){
+   if(title)title.textContent='Useful Japanese phrases';
+   if(sub)sub.textContent='Choose a situation. Tap 🔊 to play the Japanese phrase.';
+ } else if(typeof window.applyPhraseLanguage==='function'){
+   window.applyPhraseLanguage();
+ }
+ forceBannerName();
+}
+
+window.openPhraseCategory=function(k){
+ const page=document.getElementById('phraseDetailPage');
+ const title=document.getElementById('phraseDetailTitle');
+ const list=document.getElementById('phraseDetailList');
+ if(!page||!title||!list||!window.WITH_PHRASES?.[k])return;
+ const l=typeof window.withLang==='function'?window.withLang():'en';
+ title.textContent=(window.WITH_CAT_I18N?.[k]?.[l])||k;
+ list.innerHTML='';
+ window.WITH_PHRASES[k].forEach(([en,ko])=>{
+   const target=phraseTarget(en,ko);
+   const c=document.createElement('div');c.className='phrase-card';
+   const e=document.createElement('div');e.className='phrase-en';
+   e.textContent=(typeof window.localPhrase==='function'?window.localPhrase(en):en);
+   const q=document.createElement('div');q.className='phrase-ko';q.textContent=target;
+   const b=document.createElement('button');b.className='phrase-speak';b.type='button';b.textContent=phrasePlayLabel();
+   b.onclick=()=>speakPhraseTarget(target);
+   c.append(e,q,b);list.appendChild(c);
+ });
+ page.classList.add('show');page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';window.scrollTo(0,0);
+};
+
+const obs=new MutationObserver(()=>{forceBannerName();const w=document.getElementById('usefulPhrases');if(w&&country()==='JP'&&w.style.display==='none')w.style.display='block'});
+obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['style']});
+
+window.addEventListener('storage',updatePhraseSection);
+document.addEventListener('click',()=>setTimeout(updatePhraseSection,30),true);
+setTimeout(updatePhraseSection,0);
+setTimeout(updatePhraseSection,500);
+})();
+</script>
+
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */

@@ -16,3 +16,8 @@ Deploy
 2. Upload the contents as a new Vercel project (index.html must be at project root).
 3. Open the deployed URL.
 4. For testing from Korea, tap the bottom-right country button and choose Japan.
+
+Update v2
+- Home banner is named 'Translate phrase' in both Korea and Japan modes.
+- Japan mode now keeps the same situation-based phrase feature as Korea.
+- Phrase output and speech switch to Japanese in Japan mode.
