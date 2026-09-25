@@ -1891,6 +1891,54 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
+
+<script id="with-third-banner-hardfix-v21">
+(function(){
+ const C={
+  en:{title:'Translation & Phrase',KR:'Type what you want to say and translate it into Korean.',JP:'Type what you want to say and translate it into Japanese.'},
+  ko:{title:'번역 & 상황별 문장',KR:'말하고 싶은 내용을 입력해 한국어로 번역하세요.',JP:'말하고 싶은 내용을 입력해 일본어로 번역하세요.'},
+  ja:{title:'翻訳 & フレーズ',KR:'伝えたい内容を入力して韓国語に翻訳します。',JP:'伝えたい内容を入力して日本語に翻訳します。'},
+  'zh-CN':{title:'翻译 & 常用短语',KR:'输入您想说的内容并翻译成韩语。',JP:'输入您想说的内容并翻译成日语。'},
+  'zh-TW':{title:'翻譯 & 常用短語',KR:'輸入您想說的內容並翻譯成韓語。',JP:'輸入您想說的內容並翻譯成日語。'}
+ };
+ function paint(){
+   const l=localStorage.getItem('with_ui_lang')||'en';
+   const n=localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
+   const d=C[l]||C.en;
+   const b=document.querySelector('#home .banner.language') ||
+           [...document.querySelectorAll('#home .banner')][2];
+   if(!b)return;
+   const h=b.querySelector('h1,h2,h3,.title,.banner-title');
+   const p=b.querySelector('p');
+   if(h)h.textContent=d.title;
+   if(p)p.textContent=d[n];
+ }
+ function finalPaint(){
+   paint();
+   requestAnimationFrame(paint);
+   setTimeout(paint,50);
+   setTimeout(paint,180);
+   setTimeout(paint,500);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',finalPaint);else finalPaint();
+ document.querySelectorAll('#withLangGate .langchoice').forEach(b=>
+   b.addEventListener('click',finalPaint,true)
+ );
+ document.querySelectorAll('#withCountryModal [data-country]').forEach(b=>
+   b.addEventListener('click',finalPaint,true)
+ );
+ if(window.WITH_renderLanguage){
+   const old=window.WITH_renderLanguage;
+   window.WITH_renderLanguage=function(){
+     const r=old.apply(this,arguments);
+     finalPaint();
+     return r;
+   };
+ }
+ window.WITH_fixThirdBanner=finalPaint;
+})();
+</script>
+
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */
