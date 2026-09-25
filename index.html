@@ -1684,316 +1684,136 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
-<style id="with-language-atomic-v19-style">
+<style id="with-ui-controller-v25-style">
 #withLangGate .langchoice.is-selected,
 #withCountryModal button.is-selected{
-  background:#BDF44A !important;border-color:#171917 !important;color:#171917 !important;
+  background:#BDF44A !important;
+  border-color:#171917 !important;
+  color:#171917 !important;
 }
 </style>
-<script id="with-language-atomic-v19">
+<script id="with-ui-controller-v25">
 (function(){
- const HOME={
+ const UI={
   en:{
    route:['Find my way','Open a real route to your destination.'],
    near:['Nearby places','Find useful places around your current location.'],
-   trans:['Translation & Phrase',null],
-   emergency:['Emergency Help',null]
+   trans:'Translation & Phrase',
+   emergency:'Emergency Help',
+   tKR:'Type what you want to say and translate it into Korean.',
+   tJP:'Type what you want to say and translate it into Japanese.',
+   eKR:'Police, ambulance and essential help in Korea.',
+   eJP:'Police, ambulance and essential help in Japan.'
   },
   ko:{
    route:['길 찾기','목적지까지 실제 경로를 확인하세요.'],
    near:['주변 장소','현재 위치 주변의 유용한 장소를 찾아보세요.'],
-   trans:['번역 & 상황별 문장',null],
-   emergency:['긴급 도움',null]
+   trans:'번역 & 상황별 문장', emergency:'긴급 도움',
+   tKR:'말하고 싶은 내용을 입력해 한국어로 번역하세요.',
+   tJP:'말하고 싶은 내용을 입력해 일본어로 번역하세요.',
+   eKR:'한국의 경찰, 구급 및 필수 긴급 도움.',
+   eJP:'일본의 경찰, 구급 및 필수 긴급 도움.'
   },
   ja:{
    route:['道を探す','目的地までの実際のルートを確認できます。'],
    near:['周辺スポット','現在地周辺の便利な場所を探します。'],
-   trans:['翻訳 & フレーズ',null],
-   emergency:['緊急ヘルプ',null]
+   trans:'翻訳 & フレーズ', emergency:'緊急ヘルプ',
+   tKR:'伝えたい内容を入力して韓国語に翻訳します。',
+   tJP:'伝えたい内容を入力して日本語に翻訳します。',
+   eKR:'韓国の警察・救急などの緊急情報。',
+   eJP:'日本の警察・救急などの緊急情報。'
   },
   'zh-CN':{
    route:['路线导航','查看前往目的地的实际路线。'],
    near:['附近地点','查找当前位置附近的实用地点。'],
-   trans:['翻译 & 常用短语',null],
-   emergency:['紧急帮助',null]
+   trans:'翻译 & 常用短语', emergency:'紧急帮助',
+   tKR:'输入您想说的内容并翻译成韩语。',
+   tJP:'输入您想说的内容并翻译成日语。',
+   eKR:'韩国的警察、急救及必要紧急信息。',
+   eJP:'日本的警察、急救及必要紧急信息。'
   },
   'zh-TW':{
    route:['路線導航','查看前往目的地的實際路線。'],
    near:['附近地點','尋找目前位置附近的實用地點。'],
-   trans:['翻譯 & 常用短語',null],
-   emergency:['緊急協助',null]
+   trans:'翻譯 & 常用短語', emergency:'緊急協助',
+   tKR:'輸入您想說的內容並翻譯成韓語。',
+   tJP:'輸入您想說的內容並翻譯成日語。',
+   eKR:'韓國的警察、急救及必要緊急資訊。',
+   eJP:'日本的警察、急救及必要緊急資訊。'
   }
  };
- const DESC={
-  en:{KR:['Type what you want to say and translate it into Korean.','Police, ambulance and essential help in Korea.'],
-      JP:['Type what you want to say and translate it into Japanese.','Police, ambulance and essential help in Japan.']},
-  ko:{KR:['말하고 싶은 내용을 입력해 한국어로 번역하세요.','한국의 경찰, 구급 및 필수 긴급 도움.'],
-      JP:['말하고 싶은 내용을 입력해 일본어로 번역하세요.','일본의 경찰, 구급 및 필수 긴급 도움.']},
-  ja:{KR:['伝えたい内容を入力して韓国語に翻訳します。','韓国の警察・救急などの緊急情報。'],
-      JP:['伝えたい内容を入力して日本語に翻訳します。','日本の警察・救急などの緊急情報。']},
-  'zh-CN':{KR:['输入您想说的内容并翻译成韩语。','韩国的警察、急救及必要紧急信息。'],
-      JP:['输入您想说的内容并翻译成日语。','日本的警察、急救及必要紧急信息。']},
-  'zh-TW':{KR:['輸入您想說的內容並翻譯成韓語。','韓國的警察、急救及必要緊急資訊。'],
-      JP:['輸入您想說的內容並翻譯成日語。','日本的警察、急救及必要緊急資訊。']}
- };
-
+ let rendering=false;
+ function lang(){const x=localStorage.getItem('with_ui_lang')||'en';return UI[x]?x:'en'}
  function nation(){return localStorage.getItem('with_active_country')==='JP'?'JP':'KR'}
- function currentLang(){return localStorage.getItem('with_ui_lang')||'en'}
- function banners(){
+ function setCard(card,title,desc){
+   if(!card)return;
+   const h=card.querySelector('h1,h2,h3,.title,.banner-title');
+   const p=card.querySelector('p');
+   if(h)h.textContent=title;
+   if(p)p.textContent=desc;
+ }
+ function render(){
+   if(rendering)return; rendering=true;
+   const l=lang(), n=nation(), d=UI[l];
    const home=document.getElementById('home')||document;
-   const a=[...home.querySelectorAll('.banner')];
-   return {route:a[0],near:a[1],trans:a[2],emergency:a[3]};
- }
- function setBanner(b,pair){
-   if(!b)return;
-   const h=b.querySelector('h1,h2,h3,.title,.banner-title');
-   const p=b.querySelector('p');
-   if(h)h.textContent=pair[0];
-   if(p && pair[1]!=null)p.textContent=pair[1];
- }
- function selected(){
-   document.querySelectorAll('#withLangGate .langchoice').forEach(b=>b.classList.toggle('is-selected',b.dataset.lang===currentLang()));
+   const cards=[...home.querySelectorAll('.banner')];
+   setCard(cards[0],d.route[0],d.route[1]);
+   setCard(cards[1],d.near[0],d.near[1]);
+   setCard(document.querySelector('#home .banner.language')||cards[2],d.trans,n==='JP'?d.tJP:d.tKR);
+   setCard(cards[3],d.emergency,n==='JP'?d.eJP:d.eKR);
+
+   // Location UI intentionally stays English regardless of Language.
+   const loc=document.querySelector('.home-location-card');
+   if(loc){
+     const h=loc.querySelector('h2,h3,.home-location-title,.location-title');
+     if(h)h.textContent='My location';
+     [...loc.querySelectorAll('*')].forEach(el=>{
+       if(el.children.length)return;
+       const s=(el.textContent||'').trim();
+       if(/Current location set successfully|현재 위치가 저장|現在地を保存しました|当前位置已保存|目前位置已儲存/.test(s))
+         el.textContent='✓ Current location set successfully.';
+       if(/No location saved yet|아직 저장된 위치|保存された位置情報|尚未保存位置|尚未儲存位置/.test(s))
+         el.textContent='No location saved yet.';
+     });
+     [...loc.querySelectorAll('button')].forEach(b=>{
+       if(/Save current location|현재 위치 저장|現在地を保存|保存当前位置|儲存目前位置/.test(b.textContent||''))
+         b.textContent='◎ Save current location';
+     });
+   }
+
+   document.querySelectorAll('#withLangGate .langchoice').forEach(b=>
+     b.classList.toggle('is-selected',b.dataset.lang===l));
    const pref=localStorage.getItem('with_travel_country')||'AUTO';
-   document.querySelectorAll('#withCountryModal [data-country]').forEach(b=>b.classList.toggle('is-selected',b.dataset.country===pref));
+   document.querySelectorAll('#withCountryModal [data-country]').forEach(b=>
+     b.classList.toggle('is-selected',b.dataset.country===pref));
+   rendering=false;
  }
- function paint(lang){
-   lang=HOME[lang]?lang:'en';
-   const c=nation(), b=banners(), d=DESC[lang][c];
-   setBanner(b.route,HOME[lang].route);
-   setBanner(b.near,HOME[lang].near);
-   setBanner(b.trans,[HOME[lang].trans[0],d[0]]);
-   setBanner(b.emergency,[HOME[lang].emergency[0],d[1]]);
-   localStorage.setItem('with_ui_lang',lang);
-   selected();
- }
+ function finalRender(){render();requestAnimationFrame(render);setTimeout(render,120);}
 
- // Capture original app language function only once.
- const original=window.WITH_applyLanguage;
-
- // One click = one complete render. No mixed intermediate language survives.
+ // Language: existing engine handles EN/JA/ZH. Korean is handled by this controller.
  document.querySelectorAll('#withLangGate .langchoice').forEach(btn=>{
    btn.addEventListener('click',function(e){
-     e.preventDefault();e.stopImmediatePropagation();
      const l=btn.dataset.lang;
-     // Let original engine update non-home pages where supported.
-     if(original && l!=='ko'){
-       try{original(l)}catch(_){}
-     }else{
-       localStorage.setItem('with_ui_lang',l);
+     if(l==='ko'){
+       e.preventDefault();e.stopImmediatePropagation();
+       localStorage.setItem('with_ui_lang','ko');
        document.getElementById('withLangGate')?.classList.add('hidden');
        const x=document.getElementById('withLangChange');if(x)x.style.display='block';
      }
-     // Paint all four home cards synchronously from one dictionary.
-     paint(l);
-     // Older country code may repaint after click; make our atomic paint the final state.
-     requestAnimationFrame(()=>paint(l));
-     setTimeout(()=>paint(l),120);
+     setTimeout(finalRender,0);
    },true);
  });
+ document.querySelectorAll('#withCountryModal [data-country]').forEach(btn=>
+   btn.addEventListener('click',()=>setTimeout(finalRender,140),true));
+ document.getElementById('withLangChange')?.addEventListener('click',()=>setTimeout(render,0));
+ document.getElementById('withCountryChange')?.addEventListener('click',()=>setTimeout(render,0));
 
- // Nation changes update country-dependent descriptions without changing UI language.
- document.querySelectorAll('#withCountryModal [data-country]').forEach(btn=>{
-   btn.addEventListener('click',()=>setTimeout(()=>paint(currentLang()),150),true);
- });
+ // One observer, one renderer: prevents old async code from leaving mixed-language home cards.
+ const home=document.getElementById('home');
+ if(home)new MutationObserver(()=>queueMicrotask(render)).observe(home,{subtree:true,childList:true,characterData:true});
 
- document.getElementById('withLangChange')?.addEventListener('click',()=>setTimeout(selected,0));
- document.getElementById('withCountryChange')?.addEventListener('click',()=>setTimeout(selected,0));
-
- function boot(){paint(currentLang())}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
- setTimeout(boot,250);
- window.WITH_renderLanguage=paint;
-})();
-</script>
-
-
-<script id="with-location-language-v20">
-(function(){
- const T={
-  en:{
-   title:'My location',
-   success:'✓ Current location set successfully.',
-   save:'◎ Save current location',
-   unset:'No location saved yet.'
-  },
-  ko:{
-   title:'내 위치',
-   success:'✓ 현재 위치가 저장되었습니다.',
-   save:'◎ 현재 위치 저장',
-   unset:'아직 저장된 위치가 없습니다.'
-  },
-  ja:{
-   title:'現在地',
-   success:'✓ 現在地を保存しました。',
-   save:'◎ 現在地を保存',
-   unset:'保存された位置情報はありません。'
-  },
-  'zh-CN':{
-   title:'我的位置',
-   success:'✓ 当前位置已保存。',
-   save:'◎ 保存当前位置',
-   unset:'尚未保存位置。'
-  },
-  'zh-TW':{
-   title:'我的位置',
-   success:'✓ 目前位置已儲存。',
-   save:'◎ 儲存目前位置',
-   unset:'尚未儲存位置。'
-  }
- };
-
- function lang(){return localStorage.getItem('with_ui_lang')||'en'}
- function paint(){
-   const d=T[lang()]||T.en;
-   const card=document.querySelector('.home-location-card');
-   if(!card)return;
-
-   const title=card.querySelector('h2,h3,.home-location-title,.location-title');
-   if(title) title.textContent=d.title;
-
-   const success=[...card.querySelectorAll('*')].find(el=>{
-     const s=(el.textContent||'').trim();
-     return /Current location set successfully|현재 위치가 저장|現在地を保存|当前位置已保存|目前位置已儲存/.test(s)
-       && el.children.length===0;
-   });
-   if(success) success.textContent=d.success;
-
-   const save=[...card.querySelectorAll('button')].find(el=>
-     /Save current location|현재 위치 저장|現在地を保存|保存当前位置|儲存目前位置/.test(el.textContent||'')
-   );
-   if(save) save.textContent=d.save;
-
-   const unset=[...card.querySelectorAll('*')].find(el=>{
-     const s=(el.textContent||'').trim();
-     return /No location saved yet|아직 저장된 위치|保存された位置情報|尚未保存位置|尚未儲存位置/.test(s)
-       && el.children.length===0;
-   });
-   if(unset) unset.textContent=d.unset;
- }
-
- function schedule(){paint();requestAnimationFrame(paint);setTimeout(paint,120)}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);else schedule();
-
- document.querySelectorAll('#withLangGate .langchoice').forEach(b=>{
-   b.addEventListener('click',()=>setTimeout(schedule,20),true);
- });
-
- // Extend v19 renderer so location and banners change as one UI language.
- if(window.WITH_renderLanguage){
-   const old=window.WITH_renderLanguage;
-   window.WITH_renderLanguage=function(l){
-     const r=old.apply(this,arguments);
-     schedule();
-     return r;
-   };
- }
- window.WITH_renderLocationLanguage=paint;
-})();
-</script>
-
-
-<script id="with-third-banner-hardfix-v21">
-(function(){
- const C={
-  en:{title:'Translation & Phrase',KR:'Type what you want to say and translate it into Korean.',JP:'Type what you want to say and translate it into Japanese.'},
-  ko:{title:'번역 & 상황별 문장',KR:'말하고 싶은 내용을 입력해 한국어로 번역하세요.',JP:'말하고 싶은 내용을 입력해 일본어로 번역하세요.'},
-  ja:{title:'翻訳 & フレーズ',KR:'伝えたい内容を入力して韓国語に翻訳します。',JP:'伝えたい内容を入力して日本語に翻訳します。'},
-  'zh-CN':{title:'翻译 & 常用短语',KR:'输入您想说的内容并翻译成韩语。',JP:'输入您想说的内容并翻译成日语。'},
-  'zh-TW':{title:'翻譯 & 常用短語',KR:'輸入您想說的內容並翻譯成韓語。',JP:'輸入您想說的內容並翻譯成日語。'}
- };
- function paint(){
-   const l=localStorage.getItem('with_ui_lang')||'en';
-   const n=localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
-   const d=C[l]||C.en;
-   const b=document.querySelector('#home .banner.language') ||
-           [...document.querySelectorAll('#home .banner')][2];
-   if(!b)return;
-   const h=b.querySelector('h1,h2,h3,.title,.banner-title');
-   const p=b.querySelector('p');
-   if(h)h.textContent=d.title;
-   if(p)p.textContent=d[n];
- }
- function finalPaint(){
-   paint();
-   requestAnimationFrame(paint);
-   setTimeout(paint,50);
-   setTimeout(paint,180);
-   setTimeout(paint,500);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',finalPaint);else finalPaint();
- document.querySelectorAll('#withLangGate .langchoice').forEach(b=>
-   b.addEventListener('click',finalPaint,true)
- );
- document.querySelectorAll('#withCountryModal [data-country]').forEach(b=>
-   b.addEventListener('click',finalPaint,true)
- );
- if(window.WITH_renderLanguage){
-   const old=window.WITH_renderLanguage;
-   window.WITH_renderLanguage=function(){
-     const r=old.apply(this,arguments);
-     finalPaint();
-     return r;
-   };
- }
- window.WITH_fixThirdBanner=finalPaint;
-})();
-</script>
-
-
-<script id="with-third-banner-final-v22">
-(function(){
- const TITLE={
-   en:'Translation & Phrase',
-   ko:'번역 & 상황별 문장',
-   ja:'翻訳 & フレーズ',
-   'zh-CN':'翻译 & 常用短语',
-   'zh-TW':'翻譯 & 常用短語'
- };
- const DESC={
-   en:{KR:'Type what you want to say and translate it into Korean.',JP:'Type what you want to say and translate it into Japanese.'},
-   ko:{KR:'말하고 싶은 내용을 입력해 한국어로 번역하세요.',JP:'말하고 싶은 내용을 입력해 일본어로 번역하세요.'},
-   ja:{KR:'伝えたい内容を入力して韓国語に翻訳します。',JP:'伝えたい内容を入力して日本語に翻訳します。'},
-   'zh-CN':{KR:'输入您想说的内容并翻译成韩语。',JP:'输入您想说的内容并翻译成日语。'},
-   'zh-TW':{KR:'輸入您想說的內容並翻譯成韓語。',JP:'輸入您想說的內容並翻譯成日語。'}
- };
- let painting=false;
- function third(){
-   return document.querySelector('#home .banner.language') ||
-          [...document.querySelectorAll('#home .banner')][2];
- }
- function paint(){
-   if(painting)return;
-   const b=third(); if(!b)return;
-   painting=true;
-   const l=TITLE[localStorage.getItem('with_ui_lang')] ? localStorage.getItem('with_ui_lang') : 'en';
-   const c=localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
-   const h=b.querySelector('h1,h2,h3,.title,.banner-title');
-   const p=b.querySelector('p');
-   if(h && h.textContent!==TITLE[l]) h.textContent=TITLE[l];
-   if(p && p.textContent!==DESC[l][c]) p.textContent=DESC[l][c];
-   painting=false;
- }
- function start(){
-   const b=third(); if(!b)return;
-   paint();
-   // Protect only this banner from any legacy script repainting it later.
-   new MutationObserver(function(){ queueMicrotask(paint); })
-     .observe(b,{subtree:true,childList:true,characterData:true});
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-
- document.querySelectorAll('#withLangGate .langchoice').forEach(btn=>{
-   btn.addEventListener('click',function(){
-     // capture phase runs before legacy handlers; after they store the language, repaint.
-     setTimeout(paint,0);setTimeout(paint,50);setTimeout(paint,200);
-   },true);
- });
- document.querySelectorAll('#withCountryModal [data-country]').forEach(btn=>{
-   btn.addEventListener('click',function(){
-     setTimeout(paint,0);setTimeout(paint,100);setTimeout(paint,250);
-   },true);
- });
- window.WITH_fixThirdBannerFinal=paint;
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',finalRender);else finalRender();
+ window.WITH_renderUI=finalRender;
 })();
 </script>
 
