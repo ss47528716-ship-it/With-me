@@ -1939,6 +1939,64 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
+
+<script id="with-third-banner-final-v22">
+(function(){
+ const TITLE={
+   en:'Translation & Phrase',
+   ko:'번역 & 상황별 문장',
+   ja:'翻訳 & フレーズ',
+   'zh-CN':'翻译 & 常用短语',
+   'zh-TW':'翻譯 & 常用短語'
+ };
+ const DESC={
+   en:{KR:'Type what you want to say and translate it into Korean.',JP:'Type what you want to say and translate it into Japanese.'},
+   ko:{KR:'말하고 싶은 내용을 입력해 한국어로 번역하세요.',JP:'말하고 싶은 내용을 입력해 일본어로 번역하세요.'},
+   ja:{KR:'伝えたい内容を入力して韓国語に翻訳します。',JP:'伝えたい内容を入力して日本語に翻訳します。'},
+   'zh-CN':{KR:'输入您想说的内容并翻译成韩语。',JP:'输入您想说的内容并翻译成日语。'},
+   'zh-TW':{KR:'輸入您想說的內容並翻譯成韓語。',JP:'輸入您想說的內容並翻譯成日語。'}
+ };
+ let painting=false;
+ function third(){
+   return document.querySelector('#home .banner.language') ||
+          [...document.querySelectorAll('#home .banner')][2];
+ }
+ function paint(){
+   if(painting)return;
+   const b=third(); if(!b)return;
+   painting=true;
+   const l=TITLE[localStorage.getItem('with_ui_lang')] ? localStorage.getItem('with_ui_lang') : 'en';
+   const c=localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
+   const h=b.querySelector('h1,h2,h3,.title,.banner-title');
+   const p=b.querySelector('p');
+   if(h && h.textContent!==TITLE[l]) h.textContent=TITLE[l];
+   if(p && p.textContent!==DESC[l][c]) p.textContent=DESC[l][c];
+   painting=false;
+ }
+ function start(){
+   const b=third(); if(!b)return;
+   paint();
+   // Protect only this banner from any legacy script repainting it later.
+   new MutationObserver(function(){ queueMicrotask(paint); })
+     .observe(b,{subtree:true,childList:true,characterData:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+
+ document.querySelectorAll('#withLangGate .langchoice').forEach(btn=>{
+   btn.addEventListener('click',function(){
+     // capture phase runs before legacy handlers; after they store the language, repaint.
+     setTimeout(paint,0);setTimeout(paint,50);setTimeout(paint,200);
+   },true);
+ });
+ document.querySelectorAll('#withCountryModal [data-country]').forEach(btn=>{
+   btn.addEventListener('click',function(){
+     setTimeout(paint,0);setTimeout(paint,100);setTimeout(paint,250);
+   },true);
+ });
+ window.WITH_fixThirdBannerFinal=paint;
+})();
+</script>
+
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */
