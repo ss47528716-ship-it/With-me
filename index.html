@@ -1806,6 +1806,80 @@ document.addEventListener('click',function(e){
 })();
 </script>
 
+
+<script id="with-third-banner-sync-v18">
+(function(){
+ const COPY={
+  en:{
+   KR:['Translation & Phrase','Type what you want to say and translate it into Korean.'],
+   JP:['Translation & Phrase','Type what you want to say and translate it into Japanese.']
+  },
+  ko:{
+   KR:['번역 & 상황별 문장','말하고 싶은 내용을 입력해 한국어로 번역하세요.'],
+   JP:['번역 & 상황별 문장','말하고 싶은 내용을 입력해 일본어로 번역하세요.']
+  },
+  ja:{
+   KR:['翻訳 & フレーズ','伝えたい内容を入力して韓国語に翻訳します。'],
+   JP:['翻訳 & フレーズ','伝えたい内容を入力して日本語に翻訳します。']
+  },
+  'zh-CN':{
+   KR:['翻译 & 常用短语','输入您想说的内容并翻译成韩语。'],
+   JP:['翻译 & 常用短语','输入您想说的内容并翻译成日语。']
+  },
+  'zh-TW':{
+   KR:['翻譯 & 常用短語','輸入您想說的內容並翻譯成韓語。'],
+   JP:['翻譯 & 常用短語','輸入您想說的內容並翻譯成日語。']
+  }
+ };
+
+ function getThirdBanner(){
+   // Home banners are route, nearby, translation, emergency.
+   const home=document.getElementById('home') || document;
+   const banners=[...home.querySelectorAll('.banner')];
+   return banners[2] || document.querySelector('.banner.language');
+ }
+ function sync(){
+   const b=getThirdBanner(); if(!b)return;
+   const lang=localStorage.getItem('with_ui_lang')||'en';
+   const country=localStorage.getItem('with_active_country')==='JP'?'JP':'KR';
+   const pair=(COPY[lang]||COPY.en)[country];
+   const title=b.querySelector('h2,h3,.banner-title,.title');
+   const desc=b.querySelector('p');
+   if(title) title.textContent=pair[0];
+   if(desc) desc.textContent=pair[1];
+   // Also keep the speech-bubble prop country-correct.
+   b.setAttribute('data-country',country);
+ }
+
+ function schedule(){
+   sync();
+   setTimeout(sync,0);
+   setTimeout(sync,80);
+   setTimeout(sync,250);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);
+ else schedule();
+
+ // Any language or nation choice can cause older code to repaint; run after it.
+ document.addEventListener('click',function(e){
+   if(e.target.closest && (e.target.closest('#withLangGate .langchoice') || e.target.closest('#withCountryModal [data-country]'))){
+     setTimeout(sync,40);setTimeout(sync,180);setTimeout(sync,400);
+   }
+ },true);
+
+ // Wrap existing language apply so the banner is always the final paint.
+ if(window.WITH_applyLanguage){
+   const old=window.WITH_applyLanguage;
+   window.WITH_applyLanguage=function(){
+     const r=old.apply(this,arguments);
+     setTimeout(sync,0);setTimeout(sync,120);
+     return r;
+   };
+ }
+ window.WITH_syncThirdBanner=sync;
+})();
+</script>
+
 </body></html>
 <style>
 /* v21 — use the approved illustrated WITH mascot asset */
